@@ -1,0 +1,16 @@
+[package]
+name = "batman"
+description = "collection of tools for developers"
+readme = "README.md"
+version = "0.0.1"
+edition = "2021"
+license = "MIT"
+authors = ["Matej Janežič <janezic.mj@gmail.com>"]
+repository = "https://github.com/janezicmatej/batman.git"
+
+
+[dependencies]
+clap = { version = "4.1.1", features = ["derive"] }
+clap_complete = "4.1.0"
+reqwest = "0.11.13"
+tokio = { version = "1.24.1", features = ["full"] }
