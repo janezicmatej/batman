@@ -24,7 +24,7 @@ async fn main() -> Result<()> {
             Ok(())
         }
         Commands::Generate { shell } => {
-            generate(shell, &mut Args::command(), "afh", &mut std::io::stdout());
+            generate(shell, &mut Args::command(), "batman", &mut std::io::stdout());
             Ok(())
         }
     }
