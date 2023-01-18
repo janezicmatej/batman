@@ -1,34 +1,24 @@
-use std::str::FromStr;
-
 use anyhow::Result;
+use clap::ValueEnum;
 
 use super::{package::Package, query::query_pypi};
 
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum Registry {
-    PyPI,
+    /// Python Packaged Index
+    Pypi,
+    /// Node Package Manager
     Npm,
-    CratesIO,
-}
-
-impl FromStr for Registry {
-    type Err = String;
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        match s {
-            "pypi" => Ok(Self::PyPI),
-            "npm" => Ok(Self::Npm),
-            "cratesio" => Ok(Self::CratesIO),
-            _ => Err("unsuporrted registry".to_string()),
-        }
-    }
+    /// The Rust community's crate registry
+    Cratesio,
 }
 
 impl Registry {
     pub async fn query(&self, package: &str) -> Result<Package> {
         match self {
-            Self::CratesIO => todo!(),
+            Self::Cratesio => todo!(),
             Self::Npm => todo!(),
-            Self::PyPI => query_pypi(package).await,
+            Self::Pypi => query_pypi(package).await,
         }
     }
 }

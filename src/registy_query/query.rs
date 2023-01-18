@@ -1,3 +1,5 @@
+use std::ops::Not;
+
 use anyhow::{Context, Result};
 use reqwest::Client;
 use serde_json::Value;
@@ -36,7 +38,7 @@ pub async fn query_pypi(package: &str) -> Result<Package> {
         .as_str()
         .context("expected info.author to be string")?
         .to_string();
-    let url = info
+    let project_url = info
         .get("project_url")
         .context("no project_url in info")?
         .as_str()
@@ -44,29 +46,26 @@ pub async fn query_pypi(package: &str) -> Result<Package> {
         .to_string();
 
     // nested values
-    let project_urls = info
-        .get("project_urls")
-        .context("no project_urls in info")?;
     let releases = json.get("releases").context("no releases in response")?;
-    let latest_release = releases.get(&version).context("no release in releases")?;
+    let _latest_release = releases.get(&version).context("no release in releases")?;
 
-    // rest
-    let docs = project_urls
-        .get("Documentation")
-        .and_then(|v| Some(v.as_str()?.to_string()));
-    let source = project_urls
-        .get("Source")
-        .and_then(|v| Some(v.as_str()?.to_string()));
+    let metadata = [
+        ("name", name),
+        ("author", author),
+        ("version", version),
+        ("url", project_url),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v.is_empty().not().then_some(v)))
+    .collect();
+    let urls = info
+        .get("project_urls")
+        .context("no project_urls in info")?
+        .as_object()
+        .context("expected info.project_urls to be object")?
+        .into_iter()
+        .map(|(k, v)| (k.to_string(), v.as_str().map(|x| x.to_string())))
+        .collect();
 
-    // let latest_release = json.get("releases").context("there is no releases")?.get(info.get("version"))
-
-    Ok(Package {
-        name,
-        version,
-        published: "xd".to_string(),
-        author,
-        url,
-        docs,
-        source,
-    })
+    Ok(Package { metadata, urls })
 }
