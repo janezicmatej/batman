@@ -1,9 +1,9 @@
-use std::{collections::HashMap, fmt::Display};
+use std::fmt::Display;
 
 #[derive(Debug)]
 pub struct Package {
-    pub metadata: HashMap<String, Option<String>>,
-    pub urls: HashMap<String, Option<String>>,
+    pub metadata: Vec<(String, Option<String>)>,
+    pub urls: Vec<(String, Option<String>)>,
 }
 
 impl Display for Package {
