@@ -1,7 +1,7 @@
 use std::ops::Not;
 
 use anyhow::{Context, Result};
-use chrono::{TimeZone, Utc};
+use chrono::{DateTime, TimeZone, Utc};
 use reqwest::Client;
 use serde_json::Value;
 
@@ -132,5 +132,79 @@ pub async fn query_pypi(package: &str) -> Result<Package> {
         .map(|(k, v)| (k.to_string(), v.as_str().map(|x| x.to_string())))
         .collect();
 
-    Ok(Package { metadata, urls })
+    Ok(Package {
+        groups: vec![metadata, urls],
+    })
+}
+
+pub async fn query_npm(package: &str) -> Result<Package> {
+    let client = Client::new();
+    let response = client
+        .get(format!("https://registry.npmjs.org/{package}"))
+        .send();
+
+    let response_stats = client
+        .get(format!(
+            "https://api.npmjs.org/downloads/point/last-month/{package}"
+        ))
+        .send();
+
+    let json: Value = serde_json::from_str(&response.await?.text().await?)?;
+
+    let name = json
+        .get("name")
+        .context("no name in response")?
+        .as_str()
+        .context("expected name to be string")?
+        .to_string();
+    let version = json
+        .get("dist-tags")
+        .context("no dist-tags in response")?
+        .get("latest")
+        .context("no latest in dist-tags")?
+        .as_str()
+        .context("expected dist-tags.latest to be string")?
+        .to_string();
+    let homepage = json
+        .get("homepage")
+        .context("no homepage in response")?
+        .as_str()
+        .context("expected homepage to be string")?
+        .to_string();
+    let upload_time = DateTime::parse_from_rfc3339(
+        json.get("time")
+            .context("no time in response")?
+            .get(&version)
+            .context("no latest version in time")?
+            .as_str()
+            .context("expected time.latest to be string")?,
+    )
+    .context("unable to parse upload_time")?
+    .format("%-d. %b %y")
+    .to_string();
+
+    let stats_json: Value = serde_json::from_str(&response_stats.await?.text().await?)?;
+
+    let downloads = stats_json
+        .get("downloads")
+        .context("no data in response")?
+        .as_u64()
+        .context("expected data.last_month to be a number")?
+        .to_string()
+        .seperate();
+
+    let metadata = [
+        ("name", name),
+        ("version", version),
+        ("uploaded", upload_time),
+        ("downloads (month)", downloads),
+        ("homepage", homepage),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v.is_empty().not().then_some(v)))
+    .collect();
+
+    Ok(Package {
+        groups: vec![metadata],
+    })
 }
