@@ -23,12 +23,7 @@ async fn main() -> Result<()> {
         Commands::Ssh { remote } => Host::for_remote(&remote)?.ssh_connect(),
 
         Commands::Generate { shell } => {
-            generate(
-                shell,
-                &mut Args::command(),
-                "batman",
-                &mut std::io::stdout(),
-            );
+            generate(shell, &mut Args::command(), "bm", &mut std::io::stdout());
             Ok(())
         }
     }

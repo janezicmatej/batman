@@ -22,6 +22,7 @@ pub enum Commands {
     },
 
     /// Search for package in various package registries
+    #[clap(alias = "rl")]
     Registry {
         /// Registry to query against
         #[arg(value_enum)]
@@ -36,6 +37,7 @@ pub enum Commands {
     ///
     /// Glorified ssh aliases. You can configure remotes in
     /// $HOME/.batman/ssh_config.yaml
+    #[clap(alias = "s")]
     Ssh {
         /// Remote name
         #[arg(value_enum)]
