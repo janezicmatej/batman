@@ -1,5 +1,3 @@
-#![feature(iter_intersperse)]
-
 mod args;
 mod registy_query;
 
