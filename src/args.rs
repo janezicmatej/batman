@@ -31,4 +31,14 @@ pub enum Commands {
         #[arg(value_enum)]
         package: String,
     },
+
+    /// Ssh to a configured remote
+    ///
+    /// Glorified ssh aliases. You can configure remotes in
+    /// $HOME/.batman/ssh_config.yaml
+    Ssh {
+        /// Remote name
+        #[arg(value_enum)]
+        remote: String,
+    },
 }
