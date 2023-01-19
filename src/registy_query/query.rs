@@ -2,7 +2,10 @@ use std::ops::Not;
 
 use anyhow::{Context, Result};
 use chrono::{DateTime, TimeZone, Utc};
-use reqwest::Client;
+use reqwest::{
+    header::{HeaderMap, HeaderValue, USER_AGENT},
+    Client,
+};
 use serde_json::Value;
 
 use super::package::Package;
@@ -199,6 +202,78 @@ pub async fn query_npm(package: &str) -> Result<Package> {
         ("uploaded", upload_time),
         ("downloads (month)", downloads),
         ("homepage", homepage),
+    ]
+    .into_iter()
+    .map(|(k, v)| (k.to_string(), v.is_empty().not().then_some(v)))
+    .collect();
+
+    Ok(Package {
+        groups: vec![metadata],
+    })
+}
+
+pub async fn query_cratesio(package: &str) -> Result<Package> {
+    let mut headers = HeaderMap::new();
+    let user_agent = HeaderValue::from_str("batman cli").expect("Error building user agent header");
+    headers.insert(USER_AGENT, user_agent);
+
+    let client = Client::builder().default_headers(headers).build()?;
+    let response = client
+        .get(format!("https://crates.io/api/v1/crates/{package}"))
+        .send()
+        .await?
+        .text()
+        .await?;
+
+    let json: Value = serde_json::from_str(&response)?;
+
+    let crate_data = json
+        .get("crate")
+        .context("expected response to have crate")?;
+
+    let name = crate_data
+        .get("name")
+        .context("no name in crate")?
+        .as_str()
+        .context("expected crate.name to be string")?
+        .to_string();
+    let version = crate_data
+        .get("newest_version")
+        .context("no newest_version in crate")?
+        .as_str()
+        .context("expected crate.newest_version to be string")?
+        .to_string();
+    let url = crate_data
+        .get("repository")
+        .context("no repository in crate")?
+        .as_str()
+        .context("expected repository to be string")?
+        .to_string();
+    let downloads = crate_data
+        .get("recent_downloads")
+        .context("no recent_downloads in crate")?
+        .as_u64()
+        .context("expected recent_downloads to be number")?
+        .to_string()
+        .seperate();
+
+    let upload_time = DateTime::parse_from_rfc3339(
+        crate_data
+            .get("updated_at")
+            .context("no updated_at in crate")?
+            .as_str()
+            .context("expected crate.updated_at to be string")?,
+    )
+    .context("unable to parse upload_time")?
+    .format("%-d. %b %y")
+    .to_string();
+
+    let metadata = [
+        ("name", name),
+        ("version", version),
+        ("uploaded", upload_time),
+        ("downloads (recent)", downloads),
+        ("url", url),
     ]
     .into_iter()
     .map(|(k, v)| (k.to_string(), v.is_empty().not().then_some(v)))

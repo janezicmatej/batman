@@ -1,7 +1,10 @@
 use anyhow::Result;
 use clap::ValueEnum;
 
-use super::{package::Package, query::{query_pypi, query_npm}};
+use super::{
+    package::Package,
+    query::{query_cratesio, query_npm, query_pypi},
+};
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
 pub enum Registry {
@@ -16,7 +19,7 @@ pub enum Registry {
 impl Registry {
     pub async fn query(&self, package: &str) -> Result<Package> {
         match self {
-            Self::Cratesio => todo!(),
+            Self::Cratesio => query_cratesio(package).await,
             Self::Npm => query_npm(package).await,
             Self::Pypi => query_pypi(package).await,
         }
