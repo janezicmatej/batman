@@ -43,4 +43,14 @@ pub enum Commands {
         #[arg(value_enum)]
         remote: String,
     },
+
+    /// Open aliased url
+    ///
+    /// Url aliases. You can configure urls in $HOME/.batman/urls.yaml
+    #[clap(alias = "d")]
+    Dplo {
+        /// Remote name
+        #[arg(value_enum)]
+        name: String,
+    },
 }

@@ -2,7 +2,7 @@
 name = "bm"
 description = "collection of tools for developers"
 readme = "README.md"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 license = "MIT"
 authors = ["Matej Janežič <janezic.mj@gmail.com>"]
@@ -15,6 +15,7 @@ chrono = "0.4.23"
 clap = { version = "4.1.1", features = ["derive"] }
 clap_complete = "4.1.0"
 home = "0.5.4"
+open = "3.2.0"
 reqwest = "0.11.13"
 serde = { version = "1.0.152", features = ["derive"] }
 serde_json = "1.0.91"
