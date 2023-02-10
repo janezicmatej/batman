@@ -23,7 +23,19 @@ async fn main() -> Result<()> {
             Ok(())
         }
         Commands::Ssh { remote } => Host::for_remote(&remote)?.ssh_connect(),
-        Commands::Dplo { name } => Url::for_name(&name)?.open(),
+        Commands::Dplo { name } => match name {
+            Some(name) => Url::for_name(&name)?.open(),
+            None => {
+                let mut urls = Url::load()?.into_iter().collect::<Vec<(String, Url)>>();
+                urls.sort_by(|a, b| a.0.cmp(&b.0));
+                let pad = urls.iter().map(|x| x.0.len()).max().unwrap();
+
+                for (name, url) in urls {
+                    println!("{name: <pad$} {url}");
+                }
+                Ok(())
+            }
+        },
         Commands::Generate { shell } => {
             generate(shell, &mut Args::command(), "bm", &mut std::io::stdout());
             Ok(())

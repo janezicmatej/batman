@@ -51,6 +51,6 @@ pub enum Commands {
     Dplo {
         /// Remote name
         #[arg(value_enum)]
-        name: String,
+        name: Option<String>,
     },
 }
