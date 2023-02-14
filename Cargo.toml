@@ -1,8 +1,8 @@
 [package]
-name = "bm"
+name = "batman"
 description = "collection of tools for developers"
 readme = "README.md"
-version = "0.4.0"
+version = "0.5.0"
 edition = "2021"
 license = "MIT"
 authors = ["Matej Janežič <janezic.mj@gmail.com>"]
