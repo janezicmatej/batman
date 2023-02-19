@@ -41,7 +41,7 @@ pub enum Commands {
     Ssh {
         /// Remote name
         #[arg(value_enum)]
-        remote: String,
+        remote: Option<String>,
     },
 
     /// Open aliased url

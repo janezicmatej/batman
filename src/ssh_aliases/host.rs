@@ -1,6 +1,6 @@
 use anyhow::{Context, Result};
 use serde::{Deserialize, Serialize};
-use std::{collections::HashMap, process::Command};
+use std::{collections::HashMap, fmt::Display, process::Command};
 
 use crate::config::get_config_path;
 
@@ -13,12 +13,14 @@ pub struct Host {
 
 impl Host {
     pub fn for_remote(remote: &str) -> Result<Self> {
-        let hosts = std::fs::read_to_string(get_config_path("ssh_hosts.yaml")?)?;
-        let mut parsed = serde_yaml::from_str::<HashMap<String, Host>>(&hosts)?;
-
-        parsed
+        Self::load()?
             .remove(remote)
             .context(format!("remote {remote} is not defined"))
+    }
+
+    pub fn load() -> Result<HashMap<String, Self>> {
+        let hosts = std::fs::read_to_string(get_config_path("ssh_hosts.yaml")?)?;
+        serde_yaml::from_str::<HashMap<String, Host>>(&hosts).context("unable to parse yaml")
     }
 
     pub fn ssh_connect(&self) -> Result<()> {
@@ -33,5 +35,17 @@ impl Host {
             .context("failed while waiting for command to execute")?;
 
         Ok(())
+    }
+}
+
+impl Display for Host {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{: <5} {}@{}",
+            self.port.unwrap_or(22),
+            self.user,
+            self.host
+        )
     }
 }

@@ -22,11 +22,23 @@ async fn main() -> Result<()> {
             println!("{package}");
             Ok(())
         }
-        Commands::Ssh { remote } => Host::for_remote(&remote)?.ssh_connect(),
+        Commands::Ssh { remote } => match remote {
+            Some(remote) => Host::for_remote(&remote)?.ssh_connect(),
+            None => {
+                let mut hosts = Host::load()?.into_iter().collect::<Vec<(String, _)>>();
+                hosts.sort_by(|a, b| a.0.cmp(&b.0));
+                let pad = hosts.iter().map(|x| x.0.len()).max().unwrap();
+
+                for (name, host) in hosts {
+                    println!("{name: <pad$} {host}");
+                }
+                Ok(())
+            }
+        },
         Commands::Dplo { name } => match name {
             Some(name) => Url::for_name(&name)?.open(),
             None => {
-                let mut urls = Url::load()?.into_iter().collect::<Vec<(String, Url)>>();
+                let mut urls = Url::load()?.into_iter().collect::<Vec<(String, _)>>();
                 urls.sort_by(|a, b| a.0.cmp(&b.0));
                 let pad = urls.iter().map(|x| x.0.len()).max().unwrap();
 

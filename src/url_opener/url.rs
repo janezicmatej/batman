@@ -13,10 +13,10 @@ impl Url {
     pub fn for_name(name: &str) -> Result<Self> {
         Self::load()?
             .remove(name)
-            .context(format!("remote {name} is not defined"))
+            .context(format!("name {name} is not defined"))
     }
 
-    pub fn load() -> Result<HashMap<String, Url>> {
+    pub fn load() -> Result<HashMap<String, Self>> {
         let hosts = std::fs::read_to_string(get_config_path("urls.yaml")?)?;
         serde_yaml::from_str::<HashMap<String, Url>>(&hosts).context("unable to parse yaml")
     }
